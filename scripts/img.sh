@@ -1,3 +1,2 @@
-#!/usr/bin/env bash
-# 只跑 images 方式（在仓库根目录执行，参数原样透传给 main.py）：sh scripts/img.sh <url>
-python main.py "$@" --modes images
+# 图片模式：把 url 换成目标页面后执行：sh scripts/img.sh
+python main.py https://example.com/your-page.html --out outputs --modes images

@@ -38,16 +38,18 @@ python main.py list                             # 列出已有运行记录
 
 ## 快捷脚本
 
-`scripts/` 下是一行式封装（在仓库根目录执行，参数原样透传给 main.py；
-Windows 下用 Git Bash，或直接 `sh scripts/xxx.sh`）：
+`scripts/` 下每个文件就是一行完整命令（无变量、无参数透传）。
+打开文件、把里面的 url 换成目标页面，然后在仓库根目录执行（Windows 下用 Git Bash）：
 
 ```bash
-sh scripts/md.sh     <url>   # 只跑 markdown
-sh scripts/img.sh    <url>   # 只跑 images
-sh scripts/struct.sh <url>   # 只跑 structure
-sh scripts/all.sh    <url>   # 三种全跑
-sh scripts/list.sh           # 列出已有运行记录
+sh scripts/md.sh     # 只跑 markdown
+sh scripts/img.sh    # 只跑 images
+sh scripts/struct.sh # 只跑 structure
+sh scripts/all.sh    # 三种全跑
+sh scripts/list.sh   # 列出已有运行记录
 ```
+
+需要更多选项（如 `--force`、`--main`）时，直接照着脚本里的命令补参数运行即可。
 
 ## 输出结构
 
@@ -99,5 +101,5 @@ html2any/
     ├── to_markdown.py   # 方式一
     ├── to_images.py     # 方式二
     └── to_structure.py  # 方式三
-scripts/                 # 常用组合的一行式 sh 封装
+scripts/                 # 常用组合的一行式 sh（打开改 url 后直接执行）
 ```

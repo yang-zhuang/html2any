@@ -1,3 +1,2 @@
-#!/usr/bin/env bash
-# 三种方式全跑（在仓库根目录执行，参数原样透传给 main.py）：sh scripts/all.sh <url>
-python main.py "$@" --modes markdown,images,structure
+# 三种方式全跑：把 url 换成目标页面后执行：sh scripts/all.sh
+python main.py https://example.com/your-page.html --out outputs --modes markdown,images,structure

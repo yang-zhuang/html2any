@@ -1,3 +1,2 @@
-#!/usr/bin/env bash
-# 列出已有运行记录：sh scripts/list.sh [--out 目录]
-python main.py list "$@"
+# 列出 outputs 下已有的运行记录（url -> 目录对照）
+python main.py list --out outputs
