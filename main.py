@@ -286,7 +286,7 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--search-margin", type=int, default=80,
                    help="找空白行的上下搜索范围(px)，默认 80")
     g.add_argument("--search-expand", type=int, default=3,
-                   help="范围内找不到空白行时把范围翻倍再找的最大次数，默认 3（设为 1 等同原版）")
+                   help="范围内找不到空白行时把范围翻倍再找的最大次数，默认 3（设为 1 则不扩展）")
 
     g = parser.add_argument_group("markdown 方式")
     g.add_argument("--no-images", action="store_true",

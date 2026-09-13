@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-"""方式一：html -> markdown，页面图片下载到 imgs/ 并改写相对路径。
-
-移植自 examples/html_to_markdown/html_to_markdown.py（原始文件头部的对齐说明
-保存在 docs/alignment-notes.md）。行为与原实现一致，仅两处随包内统一而变化：
-  - 正文挑选改用共享 pick_main（候选选择器为三个原实现的并集，文本量阈值 200）；
-  - DROP 标签并入了 link/meta/base（markdownify 本来就会忽略它们，产物不变）。
-"""
+"""方式一：html -> markdown，页面图片下载到 imgs/ 并改写相对路径。"""
 from __future__ import annotations
 
 import re

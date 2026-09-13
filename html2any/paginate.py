@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""四向裁白 + 空白行智能分页（方式二/三共用，照搬原始实现）。
+"""四向裁白 + 空白行智能分页（方式二/三共用）。
 
 三条核心行为：
 1. 四向裁白：把四周大片空白裁掉，再补 PADDING_* 的边距。
@@ -9,14 +9,14 @@
    空白行，没有就取上方最近的；若该范围内没有一行是空白行，则退化为取
    "最干净"（白像素最多）的那一行。因此切割线总是落在文字行之间、图片之间，
    不会把一行字或一张图劈成两半。
-3. SEARCH_EXPAND 扩展项（原版没有）：±SEARCH_MARGIN 内找不到空白行时，
-   把范围翻倍再找，最多翻 SEARCH_EXPAND 次。设为 1 即完全等同原版。
+3. SEARCH_EXPAND 扩展项：±SEARCH_MARGIN 内找不到空白行时，把范围翻倍再找，
+   最多翻 SEARCH_EXPAND 次；设为 1 则只在初始范围内找。
 """
 from __future__ import annotations
 
 from PIL import Image
 
-# 原始实现的参数
+# 分页参数
 PADDING_TOP = 15
 PADDING_BOTTOM = 20
 PADDING_LEFT = 10
@@ -49,7 +49,7 @@ def find_best_cut(gray_img, width: int, target_y: int, margin: int,
       并列时取离 target_y 更近的，下方优先）。
 
     expand > 1 时：找不到空白行就把搜索范围翻倍再找，最多翻 expand 次，
-    仍找不到才退化。expand=1 即完全等同原版行为。
+    仍找不到才退化。expand=1 则只在初始范围内找。
     """
     height = gray_img.height
     m = margin

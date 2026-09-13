@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """正文抽取与图片本地化（三种方式共用）。
 
-两个 DROP 标签清单（有意保留差异，与原实现对齐）：
+两个 DROP 标签清单（差异是有意的）：
   - DROP_TAGS_TEXT  markdown / structure 用：canvas/svg 一并丢掉（对文本产物无意义）；
   - DROP_TAGS_RENDER images 用：只丢 script/style 等，**保留 canvas**——canvas 上
     画的图表是要截进图里的，丢了会缺内容。
@@ -24,7 +24,7 @@ DROP_TAGS_TEXT = ("script", "style", "noscript", "iframe", "template", "canvas",
 # 渲染类产物（images）要丢的标签：保留 canvas（图表要截进图里）
 DROP_TAGS_RENDER = ("script", "style", "noscript", "iframe", "template", "svg")
 
-# 从页面里挑正文的候选选择器（取三个原实现的并集）
+# 从页面里挑正文的候选选择器（按顺序尝试，命中且文本量够多即用）
 MAIN_SELECTORS = (
     "main", "article", "[role=main]", "#content", "#main",
     ".content", ".main", ".post", ".article", ".markdown-body",

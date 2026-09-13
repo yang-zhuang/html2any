@@ -1,14 +1,9 @@
 # -*- coding: utf-8 -*-
 """方式三：html -> JSON 递归树（result.json）+ 每个节点对应的快照图。
 
-树的字段、content/clean_content 的语义、逐节点截图、表格单独分段截图、
-断点续传（已有 {base}_part*.png 就跳过）、分页常量，全部照搬原始实现
-D:\\Code\\bid_generate\\分析采购文件\\3_根据结构化目录对采购文件正文结构化\\main.py。
-原版用 LLM 读 docx 目录页截图提目录树，这里换成页面自身 h1~h6 层级递归建树；
-其余五处适配差异（非表格段保留全部标签、strip_noise、imgs/ 默认关闭等）的
-逐条说明见原始文件头部，已整体保存在 docs/alignment-notes.md。
-
-移植自 examples/html_to_structure/html_to_structure.py。
+按页面自身 h1~h6 层级递归建树；每个节点带 content / clean_content /
+snapshot_path；逐节点截图，表格单独分段，支持文件级断点续传
+（已有 {base}_part*.png 的节点直接跳过）。
 """
 from __future__ import annotations
 
@@ -66,14 +61,14 @@ def parse_levels(spec: str) -> set[int]:
 
 
 def safe_filename(title: str) -> str:
-    """照搬原始实现 safe_filename。"""
+    """把标题转成安全的文件名片段。"""
     return re.sub(r"[^\w\u4e00-\u9fff\-_ ]", "", title).strip().replace(" ", "_")[:50]
 
 
 def strip_noise(scope, extra_selectors=()) -> dict:
     """去掉正文里不可见 / 无意义的网页噪音，返回清理统计。
 
-    做三件事（原始实现不需要，因为它的输入是 docx 转出的干净 HTML）：
+    做三件事（网页正文常见、但渲染和阅读都不需要的噪音）：
       1. 丢掉编辑链接、占位空元素等选择器命中的节点；
       2. 丢掉不可见的元数据属性（data-mw / typeof / about ...）；
       3. 丢掉 rel 值里带 mw: 的媒体维基专用 rel。
@@ -106,9 +101,8 @@ def strip_noise(scope, extra_selectors=()) -> dict:
 def build_block_list(scope):
     """把正文 DOM 拍平成一维块列表：标题单独成块，不含标题的子树整体成块。
 
-    原版的输入是 docx 转出的 HTML，正文块本身就是 body 的直接子节点，
-    所以它直接取 body.children 就够了。网页的正文常常嵌在很多层 <div> 里，
-    直接取子节点会只剩一个容器、一个标题都找不到。
+    网页的正文常常嵌在很多层 <div> 里，直接取 body.children 往往只剩一个
+    容器、一个标题都找不到，所以先做一次 DFS 拍平。
 
     这里做一次 DFS：
       - 命中标题标签        -> 单独输出一块
@@ -137,7 +131,7 @@ def build_block_list(scope):
 def build_tree(blocks, positions, levels):
     """按标题层级递归建树。
 
-    栈逻辑与原始实现 parse_toc_to_json 一致：层级比栈顶深就是栈顶的子节点，
+    栈逻辑：层级比栈顶深就是栈顶的子节点，
     否则弹栈直到遇到更浅的一层。返回 (root, flat)，flat 是前序遍历结果——
     顺序与 blocks 里的标题顺序完全相同。
     """
@@ -175,8 +169,7 @@ def build_tree(blocks, positions, levels):
 def slice_contents(blocks, positions) -> list[str]:
     """切出每个节点的 content：本标题块之后、下一个标题块之前的所有块。
 
-    与原始实现完全一致（end_idx 取下一个**任意层级**标题的下标）。
-    所以父节点的 content 不包含子章节正文。
+    end_idx 取下一个**任意层级**标题的下标，所以父节点的 content 不包含子章节正文。
     """
     contents = []
     for k, pos in enumerate(positions):
@@ -186,7 +179,7 @@ def slice_contents(blocks, positions) -> list[str]:
 
 
 def make_clean_content(content_html: str) -> str:
-    """照搬原始实现：去掉 <table>，把 <img> 的 src 清空、alt 置为「图片」。"""
+    """去掉 <table>，把 <img> 的 src 清空、alt 置为「图片」。"""
     if not content_html:
         return ""
     soup = BeautifulSoup(content_html, "html.parser")
@@ -199,7 +192,7 @@ def make_clean_content(content_html: str) -> str:
 
 
 # ============================================================
-#  表格单独分段（照搬原始实现 TABLE_SNAPSHOT_MODE="separate"）
+#  表格单独分段（长表格不被页高限制切断）
 # ============================================================
 
 def split_html_to_segments(content_html: str) -> list[dict]:
@@ -207,9 +200,8 @@ def split_html_to_segments(content_html: str) -> list[dict]:
 
     表格单独成段，各段分别截图再连续编号 —— 这样一张长表格不会被页高限制切断。
 
-    与原版的一处差异（有意）：原版只把 p/div/ul/ol/h1~h6 收进非表格段，
-    pre / blockquote / figure 等标签会被静默丢弃。网页正文里这些标签很常见，
-    丢了会少内容，所以这里改成「除 table 特殊处理外，其余一律保留」。
+    除 table 特殊处理外，其余标签（pre / blockquote / figure 等）一律保留；
+    若只收 p/div/ul/ol/h1~h6，网页正文里常见的这些标签会被静默丢弃。
     """
     soup = BeautifulSoup(content_html, "html.parser")
     body = soup.body if soup.body else soup
@@ -266,7 +258,7 @@ def render_fragment(fragment_html: str, temp_prefix: str, snap_dir: Path, assets
                     max_page_height: int, search_margin: int, search_expand: int) -> list[str]:
     """把一个 HTML 片段渲染并切成若干张 PNG，写进 snap_dir，返回临时文件名列表。
 
-    等价于原始实现的 html_to_png：套外壳 -> 截图 -> 四向裁白 ->
+    流程：套外壳 -> 截图 -> 四向裁白 ->
     超过 max_page_height 就按空白行分页。文件名带 temp_prefix，调用方随后会统一改名。
     """
     fragment_html = _absolutize_local_images(fragment_html, assets_root)
@@ -349,7 +341,7 @@ def render_fragment(fragment_html: str, temp_prefix: str, snap_dir: Path, assets
 
 
 def _rename_with_retry(old: Path, new: Path) -> None:
-    """照搬原始实现 _rename_paths 的 Windows 文件占用重试。"""
+    """Windows 上文件可能被别的进程短暂占用，os.replace 失败时重试。"""
     for attempt in range(5):
         try:
             os.replace(old, new)
@@ -473,7 +465,7 @@ def convert(url: str, html: str, final_url: str, mode_dir: Path,
             node["snapshot_path"] = []
             continue
 
-        # 断点续传：已有 {base}_part*.png 就跳过（照搬原始实现）
+        # 断点续传：已有 {base}_part*.png 就跳过
         existing = sorted(
             f for f in os.listdir(snap_dir)
             if f.startswith(f"{base_name}_part") and f.endswith(".png")

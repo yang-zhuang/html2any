@@ -36,6 +36,19 @@ python main.py list                             # 列出已有运行记录
 - images：`--image-mode auto|page`、`--scale-factor 2`（2 倍图）、`--keep-full`
 - structure：`--levels 2-4`、`--images`（额外落 imgs/）、`--no-snapshot`（只出 JSON）
 
+## 快捷脚本
+
+`scripts/` 下是一行式封装（在仓库根目录执行，参数原样透传给 main.py；
+Windows 下用 Git Bash，或直接 `sh scripts/xxx.sh`）：
+
+```bash
+sh scripts/md.sh     <url>   # 只跑 markdown
+sh scripts/img.sh    <url>   # 只跑 images
+sh scripts/struct.sh <url>   # 只跑 structure
+sh scripts/all.sh    <url>   # 三种全跑
+sh scripts/list.sh           # 列出已有运行记录
+```
+
 ## 输出结构
 
 ```
@@ -86,5 +99,5 @@ html2any/
     ├── to_markdown.py   # 方式一
     ├── to_images.py     # 方式二
     └── to_structure.py  # 方式三
-docs/alignment-notes.md  # 与原始实现逐条对齐的说明（移植时保留）
+scripts/                 # 常用组合的一行式 sh 封装
 ```

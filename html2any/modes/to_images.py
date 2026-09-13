@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
 """方式二：html -> 多张图片。
 
-auto 模式（默认，照搬原始实现）：外壳样式 -> 整页截图 -> 四向裁白 -> 空白行智能分页。
-page 模式（原版没有，额外提供）：Chrome --print-to-pdf + PyMuPDF 逐页栅格化，
-页边界由排版引擎决定，同样不会切断内容，且每张图尺寸严格固定。
-
-移植自 examples/html_to_images/html_to_images.py（原始文件头部的对齐说明
-保存在 docs/alignment-notes.md）。随包内统一的两处变化：
-  - 正文抽取改用共享 pick_main（阈值 80 -> 200 字符，候选选择器为并集）；
-  - 显式 --main 未命中时与另两个方式一致：直接报错（原实现静默退回整页 body）。
+auto 模式（默认）：外壳样式 -> 整页截图 -> 四向裁白 -> 空白行智能分页，
+切割线落在空白行上，不会把一行字或一张图劈成两半。
+page 模式：Chrome --print-to-pdf + PyMuPDF 逐页栅格化，页边界由排版引擎决定，
+同样不会切断内容，且每张图尺寸严格固定。
 """
 from __future__ import annotations
 

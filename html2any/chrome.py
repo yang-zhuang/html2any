@@ -71,7 +71,7 @@ MEASURE_JS_FULL = """
 })();
 """
 
-# 原始实现的外壳样式默认值
+# 外壳样式默认字体
 DEFAULT_FONT_FAMILY = '"Microsoft YaHei", "SimSun", sans-serif'
 
 
@@ -191,7 +191,7 @@ def print_to_pdf(chrome: str, html_path: Path, out_pdf: Path, timeout: int) -> N
 
 def build_shell_css(font_family: str, font_size: int, line_height: float,
                     background: str, content_width: int) -> str:
-    """原始实现的外壳样式，改字体 / 底色就是改这里。"""
+    """外壳样式（正文套壳渲染用），改字体 / 底色就是改这里。"""
     return (
         f'body {{ font-family: {font_family}; font-size: {font_size}px; '
         f'line-height: {line_height}; background: {background}; '
